@@ -947,6 +947,113 @@ namespace Temp
         }
     }
 
+    internal class HamiltonianPathFinder
+    {
+        public static void Run()
+        {
+            int n, m;
+            Reader.ReadInt(out n, out m);
+            List<int>[] a = new List<int>[n];
+            for (int i = 0; i < n; i++)
+            {
+                a[i] = new List<int>();
+            }
+            for (int i = 0; i < m; i++)
+            {
+                int x, y;
+                Reader.ReadInt(out x, out y);
+                a[x].Add(y);
+                a[y].Add(x);
+            }
+
+            var rnd = new Random();
+
+            bool[] v = new bool[n];
+            int[] p = new int[n];
+            for (int i = 0; i < n; i++)
+            {
+                p[i] = -1;
+            }
+            int first = rnd.Next(n);
+            int cur = first;
+            v[cur] = true;
+
+            int count = 1;
+
+            while (true)
+            {
+                var unb = a[cur].Where(u => !v[u]).ToList();
+                int d = unb.Count;
+                if (d > 0)
+                {
+                    int next = unb[rnd.Next(d)];
+                    v[next] = true;
+                    p[cur] = next;
+                    cur = next;
+                    count++;
+                }
+                else
+                {
+                    if (count  == n && a[cur].Contains(first))
+                    {
+                        p[cur] = first;
+                        break;
+                    }
+
+                    d = a[cur].Count;
+                    int pivot;
+                    do
+                    {
+                        pivot = a[cur][rnd.Next(d)];
+                    }
+                    while (p[pivot] == cur);
+
+                    int next = p[pivot];
+
+                    int x = next;
+                    int y = -1;
+                    while (true)
+                    {
+                        int tmp = p[x];
+                        p[x] = y;
+                        y = x;
+                        x = tmp;
+                        if (y == cur)
+                        {
+                            break;
+                        }
+                    }
+                    p[pivot] = cur;
+                    cur = next;
+                }
+            }
+
+            cur = first;
+            do
+            {
+                Console.Write("{0} ", cur);
+                cur = p[cur];
+            }
+            while (cur != first);
+        }
+
+        public static void WriteTest(int n)
+        {
+            Console.WriteLine("{0} {1}", 2 * n, 2 * (n - 1) + n);
+            for (int i = 0; i < n - 1; i++)
+            {
+                Console.WriteLine("{0} {1}", 2 * i, 2 * i + 2);
+                Console.WriteLine("{0} {1}", 2 * i + 1, 2 * i + 3);
+                //Console.WriteLine("{0} {1}", 2 * i + 1, 2 * i + 2);
+                //Console.WriteLine("{0} {1}", 2 * i, 2 * i + 3);
+            }
+            for (int i = 0; i < n; i++)
+            {
+                Console.WriteLine("{0} {1}", 2 * i, 2 * i + 1);
+            }
+        }
+    }
+
     internal class Program
     {
         private static StreamReader m_InputStream;
@@ -972,11 +1079,11 @@ namespace Temp
 
         private static void Main()
         {
-            //OpenFiles();
+            OpenFiles();
 
             new Solution().Solve();
 
-            //CloseFiles();
+            CloseFiles();
         }
     }
 
@@ -984,6 +1091,7 @@ namespace Temp
     {
         public void Solve()
         {
+
         }
     }
 }
