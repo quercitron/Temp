@@ -1,18 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace Temp
 {
-    internal struct PointInt
+    internal class PointInt
     {
         public long X;
 
         public long Y;
 
         public PointInt(long x, long y)
-            : this()
         {
             this.X = x;
             this.Y = y;
@@ -47,12 +49,49 @@ namespace Temp
         {
             return (l <= X) && (X <= r) && (b <= Y) && (Y <= t);
         }
+
+        public bool Equals(PointInt other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+            return other.X == this.X && other.Y == this.Y;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+            if (obj.GetType() != typeof(PointInt))
+            {
+                return false;
+            }
+            return Equals((PointInt)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return (this.X.GetHashCode() * 397) ^ this.Y.GetHashCode();
+            }
+        }
     }
 
-    internal struct LineInt
+    internal class LineInt
     {
         public LineInt(PointInt a, PointInt b)
-            : this()
         {
             A = a.Y - b.Y;
             B = b.X - a.X;
@@ -64,6 +103,11 @@ namespace Temp
         public bool ContainsPoint(PointInt p)
         {
             return A * p.X + B * p.Y + C == 0;
+        }
+
+        public int Sign(PointInt p)
+        {
+            return Math.Sign(A * p.X + B * p.Y + C);
         }
     }
 
