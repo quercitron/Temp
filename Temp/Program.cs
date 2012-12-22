@@ -226,6 +226,13 @@ namespace Temp
 
             return result;
         }
+
+        public static T[] ShuffleSort<T>(this T[] array)
+        {
+            var result = array.Shuffle();
+            Array.Sort(result);
+            return result;
+        }
     }
 
     internal static class Algebra
@@ -575,7 +582,7 @@ namespace Temp
 
     public class Graph : IGraph
     {
-        private List<int>[] m_Edges;
+        private readonly List<int>[] m_Edges;
 
         public int Vertices { get; set; }
 
@@ -665,9 +672,9 @@ namespace Temp
 
         private readonly T[] m_Tree;
 
-        private Func<T, T, T> m_Operation;
+        private readonly Func<T, T, T> m_Operation;
 
-        private T m_Null;
+        private readonly T m_Null;
 
         public SegmentTreeSimpleInt(int size, Func<T, T, T> operation, T nullElement, IList<T> array = null)
         {
@@ -811,9 +818,9 @@ namespace Temp
             Inc(i, x - Sum(i, i));
         }
 
-        private int m_Size;
+        private readonly int m_Size;
 
-        private long[] m_Tree;
+        private readonly long[] m_Tree;
     }
 
     internal class AccumulativeDictionary<TKey> : Dictionary<TKey, int>
@@ -1091,7 +1098,7 @@ namespace Temp
     {
         public void Solve()
         {
-
+            
         }
     }
 }
