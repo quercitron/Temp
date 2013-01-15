@@ -429,11 +429,11 @@ namespace Temp
             return ((x % mod) + mod) % mod;
         }
 
-        public static long[] GetAllInverseElements(long mod)
+        public static long[] GetAllInverseElements(long n, long mod)
         {
-            long[] result = new long[mod];
+            long[] result = new long[n];
             result[1] = 1;
-            for (int i = 2; i < mod; i++)
+            for (int i = 2; i < n; i++)
             {
                 result[i] = (mod - (((mod / i) * result[mod % i]) % mod)) % mod;
             }
@@ -1142,7 +1142,149 @@ namespace Temp
     {
         public void Solve()
         {
-            
+            int n, m;
+            Reader.ReadInt(out n, out m);
+
+            var outcomes = new Outcome[n,m];
+
+            for (int i = 0; i < n; i++)
+            {
+                var s = Reader.ReadLine().Split(' ', ',').Select(x => int.Parse(x.Trim())).ToArray();
+                for (int j = 0; j < m; j++)
+                {
+                    outcomes[i, j] = new Outcome(s[2*j], s[2*j + 1]);
+                }
+            }
+
+            Console.WriteLine("Nash Equilibria:");
+            for (int i = 0; i < n; i++)
+            {
+                for (int j = 0; j < m; j++)
+                {
+                    bool ok = true;
+                    for (int k = 0; k < n; k++)
+                    {
+                        if (outcomes[k, j].O1 > outcomes[i, j].O1)
+                        {
+                            ok = false;
+                        }
+                    }
+                    for (int k = 0; k < m; k++)
+                    {
+                        if (outcomes[i, k].O2 > outcomes[i, j].O2)
+                        {
+                            ok = false;
+                        }
+                    }
+
+                    if (ok)
+                    {
+                        Console.WriteLine("{0} {1}", i + 1, j + 1);
+                    }
+                }
+            }
+            Console.WriteLine();
+
+            Console.WriteLine("Strictly Dominant Strategy");
+            for (int i = 0; i < n; i++)
+            {
+                bool ok = true;
+                for (int k = 0; k < n; k++)
+                {
+                    if (i != k)
+                    {
+                        for (int j = 0; j < m; j++)
+                        {
+                            if (outcomes[i, j].O1 <= outcomes[k, j].O1)
+                            {
+                                ok = false;
+                            }
+                        }
+                    }
+                }
+                if (ok)
+                {
+                    Console.WriteLine("Row {0}", i + 1);
+                }
+            }
+            for (int j = 0; j < m; j++)
+            {
+                bool ok = true;
+                for (int k = 0; k < m; k++)
+                {
+                    if (j != k)
+                    {
+                        for (int i = 0; i < m; i++)
+                        {
+                            if (outcomes[i, j].O2 <= outcomes[i, k].O2)
+                            {
+                                ok = false;
+                            }
+                        }
+                    }
+                }
+                if (ok)
+                {
+                    Console.WriteLine("Column {0}", j + 1);
+                }
+            }
+            Console.WriteLine();
+
+            Console.WriteLine("Weakly  Dominant Strategy");
+            for (int i = 0; i < n; i++)
+            {
+                bool ok = true;
+                for (int k = 0; k < n; k++)
+                {
+                    if (i != k)
+                    {
+                        for (int j = 0; j < m; j++)
+                        {
+                            if (outcomes[i, j].O1 < outcomes[k, j].O1)
+                            {
+                                ok = false;
+                            }
+                        }
+                    }
+                }
+                if (ok)
+                {
+                    Console.WriteLine("Row {0}", i + 1);
+                }
+            }
+            for (int j = 0; j < m; j++)
+            {
+                bool ok = true;
+                for (int k = 0; k < m; k++)
+                {
+                    if (j != k)
+                    {
+                        for (int i = 0; i < m; i++)
+                        {
+                            if (outcomes[i, j].O2 < outcomes[i, k].O2)
+                            {
+                                ok = false;
+                            }
+                        }
+                    }
+                }
+                if (ok)
+                {
+                    Console.WriteLine("Column {0}", j + 1);
+                }
+            }
+            Console.WriteLine();
+        }
+
+        class Outcome
+        {
+            public Outcome(int o1, int o2)
+            {
+                O1 = o1;
+                O2 = o2;
+            }
+
+            public int O1, O2;
         }
     }
 }
