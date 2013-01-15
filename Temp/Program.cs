@@ -89,6 +89,87 @@ namespace Temp
         }
     }
 
+    internal class Point2DReal
+    {
+        public double X;
+
+        public double Y;
+
+        public Point2DReal(double x, double y)
+        {
+            this.X = x;
+            this.Y = y;
+        }
+
+        public Point2DReal(Point2DReal head)
+            : this(head.X, head.Y)
+        {
+        }
+
+        public static Point2DReal operator +(Point2DReal a, Point2DReal b)
+        {
+            return new Point2DReal(a.X + b.X, a.Y + b.Y);
+        }
+
+        public static Point2DReal operator -(Point2DReal a, Point2DReal b)
+        {
+            return new Point2DReal(a.X - b.X, a.Y - b.Y);
+        }
+
+        public static Point2DReal operator *(Point2DReal a, double k)
+        {
+            return new Point2DReal(k * a.X, k * a.Y);
+        }
+
+        public static Point2DReal operator *(double k, Point2DReal a)
+        {
+            return new Point2DReal(k * a.X, k * a.Y);
+        }
+
+        public bool IsInsideRectangle(double l, double b, double r, double t)
+        {
+            return (l <= X) && (X <= r) && (b <= Y) && (Y <= t);
+        }
+
+        public bool Equals(Point2DReal other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+            return other.X == this.X && other.Y == this.Y;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+            if (obj.GetType() != typeof(Point2DReal))
+            {
+                return false;
+            }
+            return Equals((Point2DReal)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return (this.X.GetHashCode() * 397) ^ this.Y.GetHashCode();
+            }
+        }
+    }
+
     internal class LineInt
     {
         public LineInt(PointInt a, PointInt b)
@@ -998,6 +1079,52 @@ namespace Temp
         }
     }
 
+    internal class DisjointSetUnion<T>
+    {
+        private Dictionary<T, T> m_Parent = new Dictionary<T, T>();
+        private Dictionary<T, int> m_Rank = new Dictionary<T,int>();
+
+        public int GetRank(T x)
+        {
+            return m_Rank[x];
+        }
+
+        public void MakeSet(T x)
+        {
+            m_Parent[x] = x;
+            this.m_Rank[x] = 0;
+        }
+
+        public void UnionSets(T x, T y)
+        {
+            x = this.FindSet(x);
+            y = this.FindSet(y);
+            if (!x.Equals(y))
+            {
+                if (m_Rank[x] < m_Rank[y])
+                {
+                    T t = x;
+                    x = y;
+                    y = t;
+                }
+                m_Parent[y] = x;
+                if (m_Rank[x] == m_Rank[y])
+                {
+                    m_Rank[x]++;
+                }
+            }
+        }
+
+        public T FindSet(T x)
+        {
+            if (x.Equals(m_Parent[x]))
+            {
+                return x;
+            }
+            return m_Parent[x] = this.FindSet(m_Parent[x]);
+        }
+    }
+
     internal class HamiltonianPathFinder
     {
         public static void Run()
@@ -1142,149 +1269,7 @@ namespace Temp
     {
         public void Solve()
         {
-            int n, m;
-            Reader.ReadInt(out n, out m);
 
-            var outcomes = new Outcome[n,m];
-
-            for (int i = 0; i < n; i++)
-            {
-                var s = Reader.ReadLine().Split(' ', ',').Select(x => int.Parse(x.Trim())).ToArray();
-                for (int j = 0; j < m; j++)
-                {
-                    outcomes[i, j] = new Outcome(s[2*j], s[2*j + 1]);
-                }
-            }
-
-            Console.WriteLine("Nash Equilibria:");
-            for (int i = 0; i < n; i++)
-            {
-                for (int j = 0; j < m; j++)
-                {
-                    bool ok = true;
-                    for (int k = 0; k < n; k++)
-                    {
-                        if (outcomes[k, j].O1 > outcomes[i, j].O1)
-                        {
-                            ok = false;
-                        }
-                    }
-                    for (int k = 0; k < m; k++)
-                    {
-                        if (outcomes[i, k].O2 > outcomes[i, j].O2)
-                        {
-                            ok = false;
-                        }
-                    }
-
-                    if (ok)
-                    {
-                        Console.WriteLine("{0} {1}", i + 1, j + 1);
-                    }
-                }
-            }
-            Console.WriteLine();
-
-            Console.WriteLine("Strictly Dominant Strategy");
-            for (int i = 0; i < n; i++)
-            {
-                bool ok = true;
-                for (int k = 0; k < n; k++)
-                {
-                    if (i != k)
-                    {
-                        for (int j = 0; j < m; j++)
-                        {
-                            if (outcomes[i, j].O1 <= outcomes[k, j].O1)
-                            {
-                                ok = false;
-                            }
-                        }
-                    }
-                }
-                if (ok)
-                {
-                    Console.WriteLine("Row {0}", i + 1);
-                }
-            }
-            for (int j = 0; j < m; j++)
-            {
-                bool ok = true;
-                for (int k = 0; k < m; k++)
-                {
-                    if (j != k)
-                    {
-                        for (int i = 0; i < m; i++)
-                        {
-                            if (outcomes[i, j].O2 <= outcomes[i, k].O2)
-                            {
-                                ok = false;
-                            }
-                        }
-                    }
-                }
-                if (ok)
-                {
-                    Console.WriteLine("Column {0}", j + 1);
-                }
-            }
-            Console.WriteLine();
-
-            Console.WriteLine("Weakly  Dominant Strategy");
-            for (int i = 0; i < n; i++)
-            {
-                bool ok = true;
-                for (int k = 0; k < n; k++)
-                {
-                    if (i != k)
-                    {
-                        for (int j = 0; j < m; j++)
-                        {
-                            if (outcomes[i, j].O1 < outcomes[k, j].O1)
-                            {
-                                ok = false;
-                            }
-                        }
-                    }
-                }
-                if (ok)
-                {
-                    Console.WriteLine("Row {0}", i + 1);
-                }
-            }
-            for (int j = 0; j < m; j++)
-            {
-                bool ok = true;
-                for (int k = 0; k < m; k++)
-                {
-                    if (j != k)
-                    {
-                        for (int i = 0; i < m; i++)
-                        {
-                            if (outcomes[i, j].O2 < outcomes[i, k].O2)
-                            {
-                                ok = false;
-                            }
-                        }
-                    }
-                }
-                if (ok)
-                {
-                    Console.WriteLine("Column {0}", j + 1);
-                }
-            }
-            Console.WriteLine();
-        }
-
-        class Outcome
-        {
-            public Outcome(int o1, int o2)
-            {
-                O1 = o1;
-                O2 = o2;
-            }
-
-            public int O1, O2;
         }
     }
 }
