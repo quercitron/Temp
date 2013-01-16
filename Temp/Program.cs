@@ -89,7 +89,7 @@ namespace Temp
         }
     }
 
-    internal class Point2DReal
+    public class Point2DReal
     {
         public double X;
 
@@ -124,6 +124,11 @@ namespace Temp
         public static Point2DReal operator *(double k, Point2DReal a)
         {
             return new Point2DReal(k * a.X, k * a.Y);
+        }
+
+        public double Dist(Point2DReal p)
+        {
+            return Math.Sqrt((p.X - X)*(p.X - X) + (p.Y - Y)*(p.Y - Y));
         }
 
         public bool IsInsideRectangle(double l, double b, double r, double t)
@@ -884,10 +889,9 @@ namespace Temp
         }
     }
 
-    internal struct Pair<TFirst, TSecond>
+    internal class Pair<TFirst, TSecond>
     {
         public Pair(TFirst first, TSecond second)
-            : this()
         {
             this.First = first;
             this.Second = second;
@@ -975,7 +979,7 @@ namespace Temp
         }
     }
 
-    internal class PriorityQueue<T>
+    public class PriorityQueue<T>
     {
         public PriorityQueue(Comparison<T> comparison = null)
         {
@@ -1079,10 +1083,22 @@ namespace Temp
         }
     }
 
-    internal class DisjointSetUnion<T>
+    public class DisjointSetUnion<T>
     {
-        private Dictionary<T, T> m_Parent = new Dictionary<T, T>();
-        private Dictionary<T, int> m_Rank = new Dictionary<T,int>();
+        public DisjointSetUnion()
+        {
+            m_Parent = new Dictionary<T, T>();
+            m_Rank = new Dictionary<T, int>();
+        }
+
+        public DisjointSetUnion(DisjointSetUnion<T> set)
+        {
+            m_Parent = new Dictionary<T, T>(set.m_Parent);
+            m_Rank = new Dictionary<T, int>(set.m_Rank);
+        }
+
+        private readonly Dictionary<T, T> m_Parent;
+        private readonly Dictionary<T, int> m_Rank;
 
         public int GetRank(T x)
         {
