@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -134,44 +135,6 @@ namespace Temp
         public bool IsInsideRectangle(double l, double b, double r, double t)
         {
             return (l <= X) && (X <= r) && (b <= Y) && (Y <= t);
-        }
-
-        public bool Equals(Point2DReal other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-            return other.X == this.X && other.Y == this.Y;
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-            if (obj.GetType() != typeof(Point2DReal))
-            {
-                return false;
-            }
-            return Equals((Point2DReal)obj);
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                return (this.X.GetHashCode() * 397) ^ this.Y.GetHashCode();
-            }
         }
     }
 
@@ -559,138 +522,77 @@ namespace Temp
 
     internal static class Reader
     {
-        public static void ReadInt(out int a)
+        public static void Read<T>(out T v1)
         {
-            int[] number = new int[1];
-            ReadInt(number);
-            a = number[0];
+            var values = new T[1];
+            Read(values);
+            v1 = values[0];
         }
 
-        public static void ReadInt(out int a, out int b)
+        public static void Read<T>(out T v1, out T v2)
         {
-            int[] numbers = new int[2];
-            ReadInt(numbers);
-            a = numbers[0];
-            b = numbers[1];
+            var values = new T[2];
+            Read(values);
+            v1 = values[0];
+            v2 = values[1];
         }
 
-        public static void ReadInt(out int int1, out int int2, out int int3)
+        public static void Read<T>(out T v1, out T v2, out T v3)
         {
-            int[] numbers = new int[3];
-            ReadInt(numbers);
-            int1 = numbers[0];
-            int2 = numbers[1];
-            int3 = numbers[2];
+            var values = new T[3];
+            Read(values);
+            v1 = values[0];
+            v2 = values[1];
+            v3 = values[2];
         }
 
-        public static void ReadInt(out int int1, out int int2, out int int3, out int int4)
+        public static void Read<T>(out T v1, out T v2, out T v3, out T v4)
         {
-            int[] numbers = new int[4];
-            ReadInt(numbers);
-            int1 = numbers[0];
-            int2 = numbers[1];
-            int3 = numbers[2];
-            int4 = numbers[3];
+            var values = new T[4];
+            Read(values);
+            v1 = values[0];
+            v2 = values[1];
+            v3 = values[2];
+            v4 = values[3];
         }
 
-        public static void ReadLong(out long a)
+        public static void Read<T>(out T v1, out T v2, out T v3, out T v4, out T v5)
         {
-            long[] number = new long[1];
-            ReadLong(number);
-            a = number[0];
+            var values = new T[5];
+            Read(values);
+            v1 = values[0];
+            v2 = values[1];
+            v3 = values[2];
+            v4 = values[3];
+            v5 = values[4];
         }
 
-        public static void ReadLong(out long a, out long b)
+        public static void Read<T>(T[] values)
         {
-            long[] numbers = new long[2];
-            ReadLong(numbers);
-            a = numbers[0];
-            b = numbers[1];
+            Read(values, values.Length);
         }
 
-        public static void ReadLong(out long int1, out long int2, out long int3)
+        public static void Read<T>(T[] values, int count)
         {
-            long[] numbers = new long[3];
-            ReadLong(numbers);
-            int1 = numbers[0];
-            int2 = numbers[1];
-            int3 = numbers[2];
-        }
-
-        public static void ReadLong(out long int1, out long int2, out long int3, out long int4)
-        {
-            long[] numbers = new long[4];
-            ReadLong(numbers);
-            int1 = numbers[0];
-            int2 = numbers[1];
-            int3 = numbers[2];
-            int4 = numbers[3];
-        }
-
-        public static void ReadInt(int[] numbers)
-        {
-            // ReSharper disable PossibleNullReferenceException
+// ReSharper disable PossibleNullReferenceException
             var list = Console.ReadLine().Split();
-            // ReSharper restore PossibleNullReferenceException
+// ReSharper restore PossibleNullReferenceException
 
-            int count = Math.Min(numbers.Length, list.Length);
+            count = Math.Min(count, list.Length);
+
+            var converter = TypeDescriptor.GetConverter(typeof(T));
 
             for (int i = 0; i < count; i++)
             {
-                numbers[i] = int.Parse(list[i]);
-            }
+                values[i] = (T)converter.ConvertFromString(list[i]);
+            }  
         }
 
         public static int[] ReadDigits()
         {
             // ReSharper disable AssignNullToNotNullAttribute
-            return Console.ReadLine().Select(x => int.Parse(x.ToString())).ToArray();
+            return Console.ReadLine().Select(x => int.Parse(x.ToString(CultureInfo.InvariantCulture))).ToArray();
             // ReSharper restore AssignNullToNotNullAttribute
-        }
-
-        public static void ReadLong(long[] numbers)
-        {
-            // ReSharper disable PossibleNullReferenceException
-            var list = Console.ReadLine().Split();
-            // ReSharper restore PossibleNullReferenceException
-
-            int count = Math.Min(numbers.Length, list.Length);
-
-            for (int i = 0; i < count; i++)
-            {
-                numbers[i] = long.Parse(list[i]);
-            }
-        }
-
-        public static void ReadDouble(double[] numbers)
-        {
-            // ReSharper disable PossibleNullReferenceException
-            var list = Console.ReadLine().Split();
-            // ReSharper restore PossibleNullReferenceException
-
-            int count = Math.Min(numbers.Length, list.Length);
-
-            for (int i = 0; i < count; i++)
-            {
-                numbers[i] = double.Parse(list[i]);
-            }
-        }
-
-        public static void ReadDouble(out double a, out double b)
-        {
-            double[] numbers = new double[2];
-            ReadDouble(numbers);
-            a = numbers[0];
-            b = numbers[1];
-        }
-
-        public static void ReadDouble(out double int1, out double int2, out double int3)
-        {
-            double[] numbers = new double[3];
-            ReadDouble(numbers);
-            int1 = numbers[0];
-            int2 = numbers[1];
-            int3 = numbers[2];
         }
 
         public static string ReadLine()
@@ -900,6 +802,36 @@ namespace Temp
         public TFirst First { set; get; }
 
         public TSecond Second { set; get; }
+
+        protected bool Equals(Pair<TFirst, TSecond> other)
+        {
+            return EqualityComparer<TFirst>.Default.Equals(this.First, other.First) && EqualityComparer<TSecond>.Default.Equals(this.Second, other.Second);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+            return Equals((Pair<TFirst, TSecond>)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return (EqualityComparer<TFirst>.Default.GetHashCode(this.First) * 397) ^ EqualityComparer<TSecond>.Default.GetHashCode(this.Second);
+            }
+        }
     }
 
     internal class FenwickTreeInt64
@@ -1146,7 +1078,7 @@ namespace Temp
         public static void Run()
         {
             int n, m;
-            Reader.ReadInt(out n, out m);
+            Reader.Read(out n, out m);
             List<int>[] a = new List<int>[n];
             for (int i = 0; i < n; i++)
             {
@@ -1155,7 +1087,7 @@ namespace Temp
             for (int i = 0; i < m; i++)
             {
                 int x, y;
-                Reader.ReadInt(out x, out y);
+                Reader.Read(out x, out y);
                 a[x].Add(y);
                 a[y].Add(x);
             }
@@ -1248,6 +1180,41 @@ namespace Temp
         }
     }
 
+    internal class Backtrack<T> where T : class 
+    {
+        public Backtrack(Func<T, IEnumerable<T>> generator)
+        {
+            this.m_Generator = generator;
+        }
+
+        public Dictionary<T, T> Generate(T startState)
+        {
+            var result = new Dictionary<T, T>();
+            result.Add(startState, null);
+
+            var queue = new Queue<T>();
+            queue.Enqueue(startState);
+
+            while (queue.Count > 0)
+            {
+                var current = queue.Dequeue();
+                var next = m_Generator(current);
+                foreach (var state in next)
+                {
+                    if (!result.ContainsKey(state))
+                    {
+                        result[state] = current;
+                        queue.Enqueue(state);
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private Func<T, IEnumerable<T>> m_Generator;
+    }
+
     internal class Program
     {
         private static StreamReader m_InputStream;
@@ -1285,7 +1252,7 @@ namespace Temp
     {
         public void Solve()
         {
-
+            
         }
     }
 }
