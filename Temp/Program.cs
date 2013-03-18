@@ -6,10 +6,11 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace Temp
 {
-    internal class PointInt
+    public class PointInt
     {
         public long X;
 
@@ -287,6 +288,13 @@ namespace Temp
 
     public static class Permutations
     {
+        private static readonly Random m_Random;
+
+        static Permutations()
+        {
+            m_Random = new Random();
+        }
+
         public static int[] GetRandomPermutation(int n)
         {
             int[] p = new int[n];
@@ -295,10 +303,9 @@ namespace Temp
                 p[i] = i;
             }
 
-            Random random = new Random();
             for (int i = n - 1; i > 0; i--)
             {
-                int j = random.Next(i + 1);
+                int j = m_Random.Next(i + 1);
                 int tmp = p[i];
                 p[i] = p[j];
                 p[j] = tmp;
@@ -307,7 +314,7 @@ namespace Temp
             return p;
         }
 
-        public static T[] Shuffle<T>(this T[] array)
+        /*public static T[] Shuffle<T>(this T[] array)
         {
             int length = array.Length;
             int[] p = GetRandomPermutation(length);
@@ -318,13 +325,31 @@ namespace Temp
             }
 
             return result;
-        }
+        }*/
 
-        public static T[] ShuffleSort<T>(this T[] array)
+        /*public static T[] ShuffleSort<T>(this T[] array)
         {
             var result = array.Shuffle();
             Array.Sort(result);
             return result;
+        }*/
+
+        public static void Shuffle<T>(T[] array)
+        {
+            var n = array.Count();
+            for (int i = n - 1; i > 0; i--)
+            {
+                int j = m_Random.Next(i + 1);
+                T tmp = array[i];
+                array[i] = array[j];
+                array[j] = tmp;
+            }            
+        }
+
+        public static void ShuffleSort<T>(T[] array)
+        {
+            Shuffle(array);
+            Array.Sort(array);
         }
     }
 
@@ -603,6 +628,8 @@ namespace Temp
 
     public interface IGraph
     {
+        bool IsOriented { get; set; }
+
         int Vertices { get; set; }
 
         IList<int> this[int i] { get; }
@@ -610,13 +637,17 @@ namespace Temp
         void AddEdge(int u, int v);
 
         void AddOrientedEdge(int u, int v);
+
+        void AddNotOrientedEdge(int u, int v);
     }
 
-    public class Graph : IGraph
+    public class ListGraph : IGraph
     {
         private readonly List<int>[] m_Edges;
 
         public int Vertices { get; set; }
+
+        public bool IsOriented { get; set; }
 
         public IList<int> this[int i]
         {
@@ -626,9 +657,10 @@ namespace Temp
             }
         }
 
-        public Graph(int vertices)
+        public ListGraph(int vertices, bool isOriented = false)
         {
             this.Vertices = vertices;
+            this.IsOriented = isOriented;
 
             this.m_Edges = new List<int>[vertices];
 
@@ -639,6 +671,15 @@ namespace Temp
         }
 
         public void AddEdge(int u, int v)
+        {
+            this.AddOrientedEdge(u, v);
+            if (!IsOriented)
+            {
+                this.AddOrientedEdge(v, u);
+            }
+        }
+
+        public void AddNotOrientedEdge(int u, int v)
         {
             this.AddOrientedEdge(u, v);
             this.AddOrientedEdge(v, u);
@@ -1215,6 +1256,37 @@ namespace Temp
         private Func<T, IEnumerable<T>> m_Generator;
     }
 
+    public static class Utility
+    {
+        private static int[] sx = new[] { 1, 0, -1, 0 };
+        private static int[] sy = new[] { 0, 1, 0, -1 };
+
+        public static PointInt[] GenerateNeighbors(int x, int y)
+        {
+            var result = new PointInt[4];
+            for (int i = 0; i < 4; i++)
+            {
+                result[i] = new PointInt(x + sx[i], y + sy[i]);
+            }
+            return result;
+        }
+
+        public static List<PointInt> GenerateNeighborsWithBounds(int x, int y, int n, int m)
+        {
+            var result = new List<PointInt>(4);
+            for (int i = 0; i < 4; i++)
+            {
+                var nx = x + sx[i];
+                var ny = y + sy[i];
+                if (0 <= nx && nx < n && 0 <= ny && ny < m)
+                {
+                    result.Add(new PointInt(nx, ny));
+                }
+            }
+            return result;
+        }
+    }
+
     internal class Program
     {
         private static StreamReader m_InputStream;
@@ -1240,9 +1312,13 @@ namespace Temp
 
         private static void Main()
         {
+            Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+
             OpenFiles();
 
-            new Solution().Solve();
+            var mainThread = new Thread(() => new Solution().Solve(), 50 * 1024 * 1024);
+            mainThread.Start();
+            mainThread.Join();
 
             CloseFiles();
         }
@@ -1252,7 +1328,34 @@ namespace Temp
     {
         public void Solve()
         {
-            
+            int n, m;
+            Reader.Read(out n, out m);
+            bool[,] a = new bool[n,m];
+            for (int i = 0; i < n; i++)
+            {
+                var s = Console.ReadLine();
+                for (int j = 0; j < m; j++)
+                {
+                    a[i, j] = (s[j] == 'W');
+                }
+            }
+
+            for (int i = 0; i < n; i++)
+            {
+                int state = 0;
+                for (int j = 0; j < m; j++)
+                {
+                    if (a[i, j])
+                    {
+                        if (!v1)
+                        {
+                            v1 = true;
+                            continue;
+                        }
+                        if (v2)
+                    }
+                }
+            }
         }
     }
 }
