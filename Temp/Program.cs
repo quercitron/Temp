@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 
 namespace Temp
@@ -196,19 +194,24 @@ namespace Temp
 
         public MatrixInt(long[,] matrix, long mod = 0)
         {
-            this.m_Matrix = matrix;
+            var size = matrix.GetLength(0);
+            m_Matrix = new long[size,size];
+            Array.Copy(matrix, m_Matrix, size * size);
             Mod = mod;
 
-            for (int i = 0; i < Size; i++)
+            if (mod != 0)
             {
-                for (int j = 0; j < Size; j++)
+                for (int i = 0; i < size; i++)
                 {
-                    m_Matrix[i, j] %= mod;
+                    for (int j = 0; j < size; j++)
+                    {
+                        m_Matrix[i, j] %= mod;
+                    }
                 }
             }
         }
 
-        public static MatrixInt GetIdentityMatrix(int size, long mod = 0)
+        public static MatrixInt IdentityMatrix(int size, long mod = 0)
         {
             long[,] matrix = new long[size,size];
 
@@ -283,6 +286,18 @@ namespace Temp
             }
 
             return new MatrixInt(c, mod);
+        }
+
+        public void Print()
+        {
+            for (int i = 0; i < Size; i++)
+            {
+                for (int j = 0; j < Size; j++)
+                {
+                    Console.Write("{0} ", m_Matrix[i, j]);
+                }
+                Console.WriteLine();
+            }
         }
     }
 
@@ -399,7 +414,7 @@ namespace Temp
 
         public static MatrixInt MatrixBinPower(MatrixInt a, long n)
         {
-            MatrixInt result = MatrixInt.GetIdentityMatrix(a.Size, a.Mod);
+            MatrixInt result = MatrixInt.IdentityMatrix(a.Size, a.Mod);
 
             while (n > 0)
             {
@@ -1258,10 +1273,10 @@ namespace Temp
 
     public static class Utility
     {
-        private static int[] sx = new[] { 1, 0, -1, 0 };
-        private static int[] sy = new[] { 0, 1, 0, -1 };
+        public static readonly int[] sx = new[] { 1, 0, -1, 0 };
+        public static readonly int[] sy = new[] { 0, 1, 0, -1 };
 
-        public static PointInt[] GenerateNeighbors(int x, int y)
+        public static PointInt[] GenerateNeighbors(long x, long y)
         {
             var result = new PointInt[4];
             for (int i = 0; i < 4; i++)
@@ -1271,7 +1286,12 @@ namespace Temp
             return result;
         }
 
-        public static List<PointInt> GenerateNeighborsWithBounds(int x, int y, int n, int m)
+        public static PointInt[] GenerateNeighbors(this PointInt p)
+        {
+            return GenerateNeighbors(p.X, p.Y);
+        }
+
+        public static List<PointInt> GenerateNeighborsWithBounds(long x, long y, int n, int m)
         {
             var result = new List<PointInt>(4);
             for (int i = 0; i < 4; i++)
@@ -1284,6 +1304,11 @@ namespace Temp
                 }
             }
             return result;
+        }
+
+        public static List<PointInt> GenerateNeighborsWithBounds(this PointInt p, int n, int m)
+        {
+            return GenerateNeighborsWithBounds(p.X, p.Y, n, m);
         }
     }
 
@@ -1312,7 +1337,7 @@ namespace Temp
 
         private static void Main()
         {
-            Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+            //Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
 
             OpenFiles();
 
@@ -1328,34 +1353,7 @@ namespace Temp
     {
         public void Solve()
         {
-            int n, m;
-            Reader.Read(out n, out m);
-            bool[,] a = new bool[n,m];
-            for (int i = 0; i < n; i++)
-            {
-                var s = Console.ReadLine();
-                for (int j = 0; j < m; j++)
-                {
-                    a[i, j] = (s[j] == 'W');
-                }
-            }
 
-            for (int i = 0; i < n; i++)
-            {
-                int state = 0;
-                for (int j = 0; j < m; j++)
-                {
-                    if (a[i, j])
-                    {
-                        if (!v1)
-                        {
-                            v1 = true;
-                            continue;
-                        }
-                        if (v2)
-                    }
-                }
-            }
         }
     }
 }
