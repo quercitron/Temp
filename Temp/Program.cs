@@ -366,6 +366,45 @@ namespace Temp
             Shuffle(array);
             Array.Sort(array);
         }
+
+        public static int[] Next(int[] p)
+        {
+            int n = p.Length;
+            var next = new int[n];
+            Array.Copy(p, next, n);
+
+            int k = -1;
+            for (int i = n - 1; i > 0; i--)
+            {
+                if (next[i - 1] < next[i])
+                {
+                    k = i - 1;
+                    break;
+                }
+            }
+            if (k == -1)
+            {
+                return null;
+            }
+            for (int i = n - 1; i >= 0; i--)
+            {
+                if (next[i] > next[k])
+                {
+                    var tmp = next[i];
+                    next[i] = next[k];
+                    next[k] = tmp;
+                    break;
+                }
+            }
+            for (int i = 1; i <= (n - k - 1) / 2; i++)
+            {
+                var tmp = next[k + i];
+                next[k + i] = next[n - i];
+                next[n - i] = tmp;
+            }
+
+            return next;
+        }
     }
 
     internal static class Algebra
