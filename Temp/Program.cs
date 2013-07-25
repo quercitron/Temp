@@ -599,6 +599,44 @@ namespace Temp
         }
     }
 
+    public static class OrderStatistic
+    {
+        public static T GetKthElement<T>(this IList<T> list, int k) where T : IComparable
+        {
+            return Select(list, 0, list.Count - 1, k);
+        }
+
+        private static T Select<T>(IList<T> list, int l, int r, int k) where T : IComparable
+        {
+            if (l == r)
+                return list[l];
+
+            T x = list[(l + r) / 2];
+            var i = l;
+            var j = r;
+            do
+            {
+                while (list[i].CompareTo(x) < 0) i++;
+                while (list[j].CompareTo(x) > 0) j--;
+                if (i <= j)
+                {
+                    T tmp = list[i];
+                    list[i] = list[j];
+                    list[j] = tmp;
+
+                    i++;
+                    j--;
+                }
+            }
+            while (i <= j);
+
+            if (j < l) j++;
+            if (k <= j - l + 1)
+                return Select(list, l, j, k);
+            return Select(list, j + 1, r, k - (j - l + 1));
+        }
+    }
+
     internal static class Reader
     {
         public static void Read<T>(out T v1)
@@ -886,9 +924,10 @@ namespace Temp
         }
     }
 
-    internal class Pair<TFirst, TSecond>
+    internal struct Pair<TFirst, TSecond>
     {
         public Pair(TFirst first, TSecond second)
+            : this()
         {
             this.First = first;
             this.Second = second;
@@ -898,7 +937,7 @@ namespace Temp
 
         public TSecond Second { set; get; }
 
-        protected bool Equals(Pair<TFirst, TSecond> other)
+        private bool Equals(Pair<TFirst, TSecond> other)
         {
             return EqualityComparer<TFirst>.Default.Equals(this.First, other.First) && EqualityComparer<TSecond>.Default.Equals(this.Second, other.Second);
         }
@@ -1349,6 +1388,13 @@ namespace Temp
         {
             return GenerateNeighborsWithBounds(p.X, p.Y, n, m);
         }
+
+        public static void Swap<T>(ref T x, ref T y)
+        {
+            T tmp = x;
+            x = y;
+            y = tmp;
+        }
     }
 
     internal class Program
@@ -1392,7 +1438,87 @@ namespace Temp
     {
         public void Solve()
         {
+            int n;
+            Reader.Read(out n);
+            var g = new ListGraph(n);
+            var e = new List<Pair<int, int>>();
+            for (int i = 0; i < n; i++)
+            {
+                var line = Console.ReadLine().Split();
+                var x = int.Parse(line[0]);
+                for (int j = 1; j < line.Length; j++)
+                {
+                    int y;
+                    if (int.TryParse(line[j], out y))
+                    {
+                        if (x < y)
+                        {
+                            g.AddEdge(x - 1, y - 1);
+                            e.Add(new Pair<int, int>(x - 1, y - 1));
+                        }
+                    }
+                }
+            }
 
+            var ans = int.MaxValue;
+            for (int c = 0; c < 10000; c++)
+            {
+                var id = new int[n];
+                for (int i = 0; i < n; i++)
+                {
+                    id[i] = i;
+                }
+                var rnd = new Random();
+                var ec = new List<Pair<int, int>>(e);
+                for (int i = 0; i < n - 2; i++)
+                {
+                    var t = rnd.Next(ec.Count);
+                    /*while (id[ec[t].First] == id[ec[t].Second])
+                    {
+                        ec.Remove(ec[t]);
+                        t = rnd.Next(ec.Count);
+                    }*/
+
+                    var secondColor = id[ec[t].Second];
+                    var firstColor = id[ec[t].First];
+                    for (int j = 0; j < n; j++)
+                    {
+                        if (id[j] == secondColor)
+                        {
+                            id[j] = firstColor;
+                        }
+                    }
+
+                    ec.RemoveAll(edge => id[edge.First] == id[edge.Second]);
+                    ec = ec.OrderBy(edge => id[edge.First] * n + id[edge.Second]).ToList();
+                    var newec = new List<Pair<int, int>>();
+                    for (int j = 0; j < ec.Count - 1; j++)
+                    {
+                        if (id[ec[j].First] != id[ec[j + 1].First] || id[ec[j].Second] != id[ec[j + 1].Second])
+                        {
+                            newec.Add(ec[j]);
+                        }
+                    }
+                    newec.Add(ec[ec.Count - 1]);
+                    ec = newec;
+                }
+
+                var cut = 0;
+                foreach (var edge in e)
+                {
+                    if (id[edge.First] != id[edge.Second])
+                    {
+                        cut++;
+                    }
+                }
+
+                if (cut < ans)
+                {
+                    ans = cut;
+                }
+            }
+
+            Console.WriteLine(ans);
         }
     }
 }
