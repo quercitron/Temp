@@ -1,0 +1,81 @@
+﻿int n;
+Reader.Read(out n);
+var g = new ListGraph(n);
+var e = new List<Pair<int, int>>();
+for (int i = 0; i < n; i++)
+{
+    var line = Console.ReadLine().Split();
+    var x = int.Parse(line[0]);
+    for (int j = 1; j < line.Length; j++)
+    {
+        int y;
+        if (int.TryParse(line[j], out y))
+        {
+            if (x < y)
+            {
+                g.AddEdge(x - 1, y - 1);
+                e.Add(new Pair<int, int>(x - 1, y - 1));
+            }
+        }
+    }
+}
+
+var ans = int.MaxValue;
+for (int c = 0; c < 200; c++)
+{
+    var id = new int[n];
+    for (int i = 0; i < n; i++)
+    {
+        id[i] = i;
+    }
+    var rnd = new Random();
+    var ec = new List<Pair<int, int>>(e);
+    for (int i = 0; i < n - 2; i++)
+    {
+        var t = rnd.Next(ec.Count);
+        /*while (id[ec[t].First] == id[ec[t].Second])
+        {
+            ec.Remove(ec[t]);
+            t = rnd.Next(ec.Count);
+        }*/
+
+        var secondColor = id[ec[t].Second];
+        var firstColor = id[ec[t].First];
+        for (int j = 0; j < n; j++)
+        {
+            if (id[j] == secondColor)
+            {
+                id[j] = firstColor;
+            }
+        }
+
+        ec.RemoveAll(edge => id[edge.First] == id[edge.Second]);
+        ec = ec.OrderBy(edge => id[edge.First] * n + id[edge.Second]).ToList();
+        var newec = new List<Pair<int, int>>();
+        for (int j = 0; j < ec.Count - 1; j++)
+        {
+            if (id[ec[j].First] != id[ec[j + 1].First] || id[ec[j].Second] != id[ec[j + 1].Second])
+            {
+                newec.Add(ec[j]);
+            }
+        }
+        newec.Add(ec[ec.Count - 1]);
+        ec = newec;
+    }
+
+    var cut = 0;
+    foreach (var edge in e)
+    {
+        if (id[edge.First] != id[edge.Second])
+        {
+            cut++;
+        }
+    }
+
+    if (cut < ans)
+    {
+        ans = cut;
+    }
+}
+
+Console.WriteLine(ans);

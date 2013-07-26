@@ -781,11 +781,20 @@ namespace Temp
         {
             this.m_Edges[first].Add(second);
         }
+    }
 
-        public int[] Bfs(int start)
+    public static class GraphAlgorithms
+    {
+        private static bool[] v;
+
+        private static int[] a;
+
+        private static int c;
+
+        public static int[] Bfs(this IGraph graph, int start)
         {
-            int[] d = new int[Vertices];
-            for (int i = 0; i < Vertices; i++)
+            int[] d = new int[graph.Vertices];
+            for (int i = 0; i < graph.Vertices; i++)
             {
                 d[i] = -1;
             }
@@ -797,7 +806,7 @@ namespace Temp
             while (queue.Count > 0)
             {
                 int v = queue.Dequeue();
-                foreach (int t in this.m_Edges[v].Where(t => d[t] == -1))
+                foreach (int t in graph[v].Where(t => d[t] == -1))
                 {
                     queue.Enqueue(t);
                     d[t] = d[v] + 1;
@@ -805,6 +814,37 @@ namespace Temp
             }
 
             return d;
+        }
+
+        public static int[] TopSort(this IGraph graph)
+        {
+            v = new bool[graph.Vertices];
+            a = new int[graph.Vertices];
+            c = graph.Vertices;
+
+            for (int i = 0; i < graph.Vertices; i++)
+            {
+                if (!v[i])
+                {
+                    TopSortDfs(graph, i);
+                }
+            }
+
+            return a;
+        }
+
+        private static void TopSortDfs(IGraph graph, int t)
+        {
+            v[t] = true;
+            foreach (var next in graph[t])
+            {
+                if (!v[next])
+                {
+                    TopSortDfs(graph, next);
+                }
+            }
+            c--;
+            a[c] = t;
         }
     }
 
@@ -1436,89 +1476,54 @@ namespace Temp
 
     internal class Solution
     {
+        private bool[] v;
         public void Solve()
         {
             int n;
             Reader.Read(out n);
-            var g = new ListGraph(n);
-            var e = new List<Pair<int, int>>();
+            var g1 = new ListGraph(n, true);
+            var g2 = new ListGraph(n, true);
+            var line = Console.ReadLine();
+            while (!string.IsNullOrEmpty(line))
+            {
+                var split = line.Split();
+                var x = int.Parse(split[0]);
+                var y = int.Parse(split[1]);
+
+                g1.AddEdge(x - 1, y - 1);
+                g2.AddEdge(y - 1, x - 1);
+
+                line = Console.ReadLine();
+            }
+
+            var order = g1.TopSort();
+            v = new bool[n];
+            var ans = new List<int>();
             for (int i = 0; i < n; i++)
             {
-                var line = Console.ReadLine().Split();
-                var x = int.Parse(line[0]);
-                for (int j = 1; j < line.Length; j++)
+                if (!v[order[i]])
                 {
-                    int y;
-                    if (int.TryParse(line[j], out y))
-                    {
-                        if (x < y)
-                        {
-                            g.AddEdge(x - 1, y - 1);
-                            e.Add(new Pair<int, int>(x - 1, y - 1));
-                        }
-                    }
+                    var count = Calc(g2, order[i]);
+                    ans.Add(count);
                 }
             }
 
-            var ans = int.MaxValue;
-            for (int c = 0; c < 10000; c++)
+            ans = ans.OrderByDescending(x => x).ToList();
+            Console.WriteLine(string.Join(",", ans.Select(x => x.ToString()).ToArray()));
+        }
+
+        private int Calc(IGraph graph, int t)
+        {
+            v[t] = true;
+            var sum = 1;
+            foreach (var next in graph[t])
             {
-                var id = new int[n];
-                for (int i = 0; i < n; i++)
+                if (!v[next])
                 {
-                    id[i] = i;
-                }
-                var rnd = new Random();
-                var ec = new List<Pair<int, int>>(e);
-                for (int i = 0; i < n - 2; i++)
-                {
-                    var t = rnd.Next(ec.Count);
-                    /*while (id[ec[t].First] == id[ec[t].Second])
-                    {
-                        ec.Remove(ec[t]);
-                        t = rnd.Next(ec.Count);
-                    }*/
-
-                    var secondColor = id[ec[t].Second];
-                    var firstColor = id[ec[t].First];
-                    for (int j = 0; j < n; j++)
-                    {
-                        if (id[j] == secondColor)
-                        {
-                            id[j] = firstColor;
-                        }
-                    }
-
-                    ec.RemoveAll(edge => id[edge.First] == id[edge.Second]);
-                    ec = ec.OrderBy(edge => id[edge.First] * n + id[edge.Second]).ToList();
-                    var newec = new List<Pair<int, int>>();
-                    for (int j = 0; j < ec.Count - 1; j++)
-                    {
-                        if (id[ec[j].First] != id[ec[j + 1].First] || id[ec[j].Second] != id[ec[j + 1].Second])
-                        {
-                            newec.Add(ec[j]);
-                        }
-                    }
-                    newec.Add(ec[ec.Count - 1]);
-                    ec = newec;
-                }
-
-                var cut = 0;
-                foreach (var edge in e)
-                {
-                    if (id[edge.First] != id[edge.Second])
-                    {
-                        cut++;
-                    }
-                }
-
-                if (cut < ans)
-                {
-                    ans = cut;
+                    sum += Calc(graph, next);
                 }
             }
-
-            Console.WriteLine(ans);
+            return sum;
         }
     }
 }
