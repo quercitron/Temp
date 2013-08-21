@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Threading;
 
 namespace Temp
@@ -1437,6 +1438,75 @@ namespace Temp
         }
     }
 
+    public static class FFTMultiply
+    {
+        public static int[] Multiply(int[] a, int[] b)
+        {
+            var result = Multiply(a.Select(x => new Complex(x, 0)).ToArray(), b.Select(x => new Complex(x, 0)).ToArray());
+            return result.Select(x => (int)Math.Round(x.Real)).ToArray();
+        }
+
+        public static Complex[] Multiply(Complex[] a, Complex[] b)
+        {
+            var n = 1;
+            while (n < Math.Max(a.Length, b.Length))
+            {
+                n <<= 1;
+            }
+            n <<= 1;
+
+            var fa = new Complex[n];
+            Array.Copy(a, fa, a.Length);
+            var fb = new Complex[n];
+            Array.Copy(b, fb, b.Length);
+
+            FFT(fa, false);
+            FFT(fb, false);
+
+            for (int i = 0; i < n; i++)
+            {
+                fa[i] *= fb[i];
+            }
+
+            FFT(fa, true);
+            for (int i = 0; i < n; i++)
+            {
+                fa[i] /= n;
+            }
+            return fa;
+        }
+
+        private static void FFT(IList<Complex> a, bool invert)
+        {
+            var n = a.Count;
+            if (n == 1)
+            {
+                return;
+            }
+
+            var a0 = new Complex[n / 2];
+            var a1 = new Complex[n / 2];
+            for (int i = 0; i < n / 2; i++)
+            {
+                a0[i] = a[2 * i];
+                a1[i] = a[2 * i + 1];
+            }
+            FFT(a0, invert);
+            FFT(a1, invert);
+
+            Complex w = 1;
+            var ang = 2 * Math.PI / n * (invert ? -1 : 1);
+            Complex wn = new Complex(Math.Cos(ang), Math.Sin(ang));
+
+            for (int i = 0; i < n / 2; i++)
+            {
+                a[i] = a0[i] + w * a1[i];
+                a[i + n / 2] = a0[i] - w * a1[i];
+                w *= wn;
+            }
+        }
+    }
+
     internal class Program
     {
         private static StreamReader m_InputStream;
@@ -1476,54 +1546,14 @@ namespace Temp
 
     internal class Solution
     {
-        private bool[] v;
         public void Solve()
         {
-            int n;
-            Reader.Read(out n);
-            var g1 = new ListGraph(n, true);
-            var g2 = new ListGraph(n, true);
-            var line = Console.ReadLine();
-            while (!string.IsNullOrEmpty(line))
-            {
-                var split = line.Split();
-                var x = int.Parse(split[0]);
-                var y = int.Parse(split[1]);
-
-                g1.AddEdge(x - 1, y - 1);
-                g2.AddEdge(y - 1, x - 1);
-
-                line = Console.ReadLine();
-            }
-
-            var order = g1.TopSort();
-            v = new bool[n];
-            var ans = new List<int>();
-            for (int i = 0; i < n; i++)
-            {
-                if (!v[order[i]])
-                {
-                    var count = Calc(g2, order[i]);
-                    ans.Add(count);
-                }
-            }
-
-            ans = ans.OrderByDescending(x => x).ToList();
-            Console.WriteLine(string.Join(",", ans.Select(x => x.ToString()).ToArray()));
-        }
-
-        private int Calc(IGraph graph, int t)
-        {
-            v[t] = true;
-            var sum = 1;
-            foreach (var next in graph[t])
-            {
-                if (!v[next])
-                {
-                    sum += Calc(graph, next);
-                }
-            }
-            return sum;
+            int[] a = new[] { 1, 1, 1 };
+            int[] b = new[] { -1, 1 };
+            a = new[] { 5, 1, -4, 0, 7 };
+            b = new[] { -3, 0, 0, -2 };
+            var result = FFTMultiply.Multiply(a, b);
+            Console.WriteLine(string.Join(" ", result));
         }
     }
 }
